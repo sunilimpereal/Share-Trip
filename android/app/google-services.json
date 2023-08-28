@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "1028763338755-lj3l1j743ge53dvac10hp6crgl16ufbh.apps.googleusercontent.com",
+          "client_id": "1028763338755-lk6u4r7rubh7e4e11bbcte1op5kf2t03.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.impereal.share_trip",
+            "certificate_hash": "2943b99c67a151a7f7cff3ccfaedaa28dc3a95e3"
+          }
+        },
+        {
+          "client_id": "1028763338755-cd0rgopo9l4tvep5e938ur143bjtcrqi.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1028763338755-lj3l1j743ge53dvac10hp6crgl16ufbh.apps.googleusercontent.com",
+              "client_id": "1028763338755-cd0rgopo9l4tvep5e938ur143bjtcrqi.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

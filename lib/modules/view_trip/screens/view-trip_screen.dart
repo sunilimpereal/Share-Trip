@@ -19,7 +19,7 @@ class _ViewTripScrenState extends State<ViewTripScren> {
         title: const Text("Trip Details"),
       ),
       body: Column(
-        children: [
+        children: const [
           TripDetails(),
           MemberDetails()
         ],

@@ -1,9 +1,14 @@
 import 'dart:developer';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share_trip/common_componenets/app_date_picker.dart';
 import 'package:share_trip/common_componenets/app_textField.dart';
+import 'package:share_trip/common_componenets/app_time_picker.dart';
 import 'package:share_trip/constants/image_constants.dart';
-import 'package:share_trip/modules/create_trip/widgets/date_picker.dart';
+import 'package:share_trip/modules/create_trip/bloc/createtrip_bloc.dart';
+import 'package:share_trip/modules/create_trip/models/create_trip_model.dart';
 import 'package:share_trip/modules/create_trip/widgets/location_picker.dart';
 import 'package:share_trip/modules/create_trip/widgets/vehichle_type.dart';
 
@@ -17,36 +22,51 @@ class CreateTripScreen extends StatefulWidget {
 }
 
 class _CreateTripScreenState extends State<CreateTripScreen> {
-  TextEditingController startLocation = TextEditingController();
-  TextEditingController endLocation = TextEditingController();
-  TextEditingController noOfSeats = TextEditingController();
-  TextEditingController pricePerPerson = TextEditingController();
-  String selectedVehicle = "";
+  String selectedVehicle = "car";
   DateTime selectedDate = DateTime.now();
   onSelectedVehicleChanged(String value) {
     log(value);
     setState(() {
       selectedVehicle = value;
+      context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(vehicleType: value)));
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Create Trip"),
+    log(FirebaseAuth.instance.currentUser?.uid.toString() ?? "No user");
+    return BlocListener<CreateTripBloc, CreateTripState>(
+      listener: (context, state) {
+        if (state is CreateTripSuccessState) {
+          return;
+        }
+      },
+      child: BlocProvider(
+        create: (context) => CreateTripBloc(),
+        child: Builder(builder: (context) {
+          return Scaffold(
+            // resizeToAvoidBottomInset: false,
+            appBar: AppBar(
+              title: const Text("Create Trip"),
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  locationDetails(),
+                  vehicleTypeSelector(),
+                  startDateTime(),
+                  price(),
+                  description(),
+                  const SizedBox(
+                    height: 24,
+                  )
+                ],
+              ),
+            ),
+            bottomNavigationBar: createTripButton(),
+          );
+        }),
       ),
-      body: Column(
-        children: [
-          locationDetails(),
-          vehicleTypeSelector(),
-          startDateTime(),
-          price()
-        ],
-      ),
-      bottomNavigationBar: createTripButton(),
-      
-       
     );
   }
 
@@ -60,20 +80,21 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             child: Text(
               "Location Details",
               style: TextStyle(
-                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
           LocationPicker(
             hintText: 'Pick Start Location',
-            onChanged: (value) {},
-            controller: startLocation,
+            onChanged: (value) {
+              context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(startLocation: value)));
+            },
           ),
           LocationPicker(
             hintText: 'Pick Destination',
-            onChanged: (value) {},
-            controller: endLocation,
+            onChanged: (value) {
+              context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(endLocation: value)));
+            },
           )
         ],
       ),
@@ -86,8 +107,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
+              SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +119,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       child: Text(
                         "Vehicle Type",
                         style: TextStyle(
-                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -137,11 +158,10 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               Column(
                 children: [
                   const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    padding: EdgeInsets.symmetric(vertical: 0.0),
                     child: Text(
-                      "Seats Free",
+                      "Seats \nFree",
                       style: TextStyle(
-                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -150,8 +170,10 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                     keyboardType: TextInputType.number,
                     hintText: "4",
                     textAlign: TextAlign.center,
+                    onChanged: (value) {
+                      context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(seatsFree: value)));
+                    },
                     width: MediaQuery.of(context).size.width * 0.15,
-                    controller: noOfSeats,
                   ),
                 ],
               )
@@ -174,13 +196,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             const SizedBox(
               height: 4,
             ),
-            AppTextField(
-              keyboardType: TextInputType.number,
-              hintText: "12-2-2023",
-              textAlign: TextAlign.center,
+            AppDatePicker(
+              initaialDate: DateTime.now(),
               width: MediaQuery.of(context).size.width * 0.32,
-              controller: noOfSeats,
-            ),
+              onChanged: (value) {
+                context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(date: value.toString())));
+              },
+            )
           ],
         ),
         Row(
@@ -192,13 +214,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 const SizedBox(
                   height: 4,
                 ),
-                AppTextField(
-                  keyboardType: TextInputType.number,
-                  hintText: "12:00 AM",
-                  textAlign: TextAlign.center,
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  controller: noOfSeats,
-                ),
+                AppTimePicker(
+                    width: MediaQuery.of(context).size.width * 0.25,
+                    onChanged: (value) {
+                      context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(startTime: value.format(context))));
+                    })
               ],
             ),
             const SizedBox(
@@ -211,13 +231,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 const SizedBox(
                   height: 4,
                 ),
-                AppTextField(
-                  keyboardType: TextInputType.number,
-                  hintText: "12:90 PM",
-                  textAlign: TextAlign.center,
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  controller: noOfSeats,
-                ),
+                AppTimePicker(
+                    width: MediaQuery.of(context).size.width * 0.25,
+                    onChanged: (value) {
+                      context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(endTime: value.format(context))));
+                    })
               ],
             ),
           ],
@@ -226,22 +244,50 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     ));
   }
 
-  Widget price() {
+  Widget description() {
     return ContainerBox(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text("Price Per Person",style: TextStyle(
-          fontWeight: FontWeight.w500
+        const Text(
+          "Price Per Person",
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
+        AppTextField(
+          keyboardType: TextInputType.number,
+          hintText: "300",
+          textAlign: TextAlign.center,
+          onChanged: (value) {
+            context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(pricePerPerson: value.toString())));
+          },
+          width: MediaQuery.of(context).size.width * 0.25,
+        ),
+      ],
+    ));
+  }
 
-        ),),
-          AppTextField(
-                  keyboardType: TextInputType.number,
-                  hintText: "300",
-                  textAlign: TextAlign.center,
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  controller: noOfSeats,
-                ),
+  Widget price() {
+    return ContainerBox(
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          "Description",
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        AppTextField(
+          keyboardType: TextInputType.text,
+          hintText: "anything to joiners?",
+          textAlign: TextAlign.left,
+          onChanged: (value) {
+            context.read<CreateTripBloc>().add(CreateTripChangedEvent(createTripModel: CreateTripModel(pricePerPerson: value.toString())));
+          },
+          width: MediaQuery.of(context).size.width * 0.95,
+        ),
       ],
     ));
   }
@@ -249,9 +295,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   Widget createTripButton() {
     return Material(
       elevation: 2,
-
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical:16,horizontal:8),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         width: MediaQuery.of(context).size.width,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -261,7 +306,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               height: 50,
               width: MediaQuery.of(context).size.width * 0.75,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.read<CreateTripBloc>().add(const CreateTripSubmitEvent());
+                },
                 child: const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Text("Create Trip"),
@@ -274,4 +321,3 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 }
-

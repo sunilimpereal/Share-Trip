@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:share_trip/constants/image_constants.dart';
 import 'package:share_trip/modules/create_trip/widgets/container_box.dart';
-import 'package:share_trip/utils/widgets/app_container.dart';
 
-import '../../../constants/color_constants.dart';
 
 class TripDetails extends StatefulWidget {
   const TripDetails({super.key});

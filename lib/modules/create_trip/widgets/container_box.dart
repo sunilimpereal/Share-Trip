@@ -7,7 +7,7 @@ class ContainerBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8),
       child: Material(
         color: Colors.white,
         elevation: 0.4,

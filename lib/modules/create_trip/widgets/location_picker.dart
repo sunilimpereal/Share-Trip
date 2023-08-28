@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class LocationPicker extends StatefulWidget {
   final String hintText;
   final Function(String) onChanged;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   
-  const LocationPicker({super.key, required this.hintText, required this.onChanged, required this.controller});
+  const LocationPicker({super.key, required this.hintText, required this.onChanged, this.controller});
 
   @override
   State<LocationPicker> createState() => _LocationPickerState();
@@ -36,6 +36,8 @@ class _LocationPickerState extends State<LocationPicker> {
                     ),
                   ),
                   child: TextField(
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                    onChanged: widget.onChanged,
                     decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: widget.hintText,
